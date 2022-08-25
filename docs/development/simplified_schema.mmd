@@ -1,0 +1,80 @@
+erDiagram
+
+    metrics {
+        character_varying name
+        character_varying slug
+    }
+
+    metric_values {
+        uuid metric_id
+        double_precision value
+    }
+
+    projects {
+        character_varying name
+        USER-DEFINED slug
+        uuid parent_id
+    }
+
+    teams {
+        character_varying name
+        character_varying slug
+        uuid project_id
+    }
+
+    users {
+        USER-DEFINED email
+    }
+
+    team_members {
+        uuid team_id
+        uuid user_id
+    }
+
+    dashboards {
+        character_varying name
+        boolean default
+        uuid project_id
+    }
+
+    dashboards_widgets {
+        uuid widget_instance_id
+        uuid dashboard_id
+    }
+
+    datasources {
+        character_varying name
+        character_varying slug
+    }
+
+    widgets {
+        character_varying name
+        character_varying slug
+        uuid datasource_id
+    }
+
+    datasource_instances {
+        character_varying name
+        uuid datasource_id
+        uuid project_id
+    }
+
+    widget_instances {
+        character_varying name
+        uuid datasource_instance_id
+        uuid widget_id
+    }
+
+    team_members }o--|| users : "user_id"
+    team_members }o--|| teams : "team_id"
+    teams }o--|| projects : "project_id"
+    metric_values }o--|| metrics : "metric_id"
+    projects }o--|| projects : "parent_id"
+    dashboards }o--|| projects : "project_id"
+    datasource_instances }o--|| projects : "project_id"
+    widgets }o--|| datasources : "datasource_id"
+    widget_instances }o--|| widgets : "widget_id"
+    dashboards_widgets }o--|| dashboards : "dashboard_id"
+    datasource_instances }o--|| datasources : "datasource_id"
+    widget_instances }o--|| datasource_instances : "datasource_instance_id"
+    dashboards_widgets }o--|| widget_instances : "widget_instance_id"
