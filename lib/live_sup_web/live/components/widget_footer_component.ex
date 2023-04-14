@@ -3,10 +3,12 @@ defmodule LiveSupWeb.Live.Components.WidgetFooterComponent do
 
   def render(assigns) do
     ~H"""
-    <div class="px-2 py-1 border-t border-gray-700">
-        <div class="space-x-2 text-right">
-          <span class="text-xs text-gray-500">Updated at <%= @widget_data.updated_in_minutes %></span>
-        </div>
+    <div class="ls-widget-footer">
+      <div class="text-right">
+        <p class="text-xs text-slate-400 dark:text-navy-300">
+          Updated at <time><%= @widget_data.updated_in_minutes %></time>
+        </p>
+      </div>
     </div>
     """
   end

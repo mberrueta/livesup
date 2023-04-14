@@ -1,0 +1,23 @@
+<.breadcrumb title="Todos" steps={@breadcrumb_steps} />
+<.modal
+  :if={@live_action == :new}
+  show
+  title="New Todo"
+  return_to={~p"/projects/#{@project.id}/todos"}
+>
+  <.live_component
+    module={LiveSupWeb.ProjectLive.LiveComponents.TodoFormComponent}
+    id="manage_todo"
+    action={@live_action}
+    project={@project}
+    return_to={~p"/projects/#{@project.id}/todos"}
+  />
+</.modal>
+
+<div class="flex flex-col gap-8">
+  <ul class="list-disc list-inside text-slate-900 dark:text-slate-200">
+    <%= for(todo <- @project.todos) do %>
+      <li><%= todo.title %></li>
+    <% end %>
+  </ul>
+</div>

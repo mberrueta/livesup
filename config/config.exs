@@ -24,6 +24,33 @@ config :logger, :console,
 # Use Jason for JSON parsing in Phoenix
 config :phoenix, :json_library, Jason
 
+# Configure esbuild (the version is required)
+config :esbuild,
+  version: "0.16.4",
+  default: [
+    args: ~w(js/app.js
+      --bundle
+      --target=es2017
+      --outdir=../priv/static/assets
+      --external:/fonts/*
+      --external:/images/*
+      --external:/js/*
+      --external:/css/*),
+    cd: Path.expand("../assets", __DIR__),
+    env: %{"NODE_PATH" => Path.expand("../deps", __DIR__)}
+  ]
+
+config :tailwind,
+  version: "3.2.7",
+  default: [
+    args: ~w(
+      --config=tailwind.config.js
+      --input=css/app.css
+      --output=../priv/static/assets/app.css
+    ),
+    cd: Path.expand("../assets", __DIR__)
+  ]
+
 config :fun_with_flags, :cache,
   enabled: true,
   # in seconds
@@ -46,7 +73,6 @@ config :fun_with_flags, :cache_bust_notifications,
 
 config :live_sup,
        :config,
-       mock_api_host: "http://docker.for.mac.localhost:8080",
        google_map_key: "GOOGLE_MAP_KEY"
 
 config :live_sup, LiveSup.PromEx,
@@ -69,7 +95,16 @@ config :ueberauth, Ueberauth,
   base_path: "/oauth",
   providers: [
     google: {Ueberauth.Strategy.Google, [default_scope: "email profile"]},
-    github: {Ueberauth.Strategy.Github, []}
+    github: {Ueberauth.Strategy.Github, []},
+    okta: {
+      Ueberauth.Strategy.Okta,
+      [
+        oauth2_params: [
+          scope: "openid email profile",
+          audience: {System, :get_env, ["OKTA_AUDIENCE"]}
+        ]
+      ]
+    }
   ]
 
 config :ueberauth, Ueberauth.Strategy.Google.OAuth,
@@ -79,6 +114,22 @@ config :ueberauth, Ueberauth.Strategy.Google.OAuth,
 config :ueberauth, Ueberauth.Strategy.Github.OAuth,
   client_id: {:system, "GITHUB_OAUTH_CLIENT_ID"},
   client_secret: {:system, "GITHUB_OAUTH_CLIENT_SECRET"}
+
+config :live_sup, Oban,
+  repo: LiveSup.Repo,
+  plugins: [
+    # prune jobs after 5 minutes
+    {Oban.Plugins.Pruner, max_age: 300},
+    {Oban.Plugins.Cron,
+     crontab: [
+       # Run job every minute
+       {"*/5 * * * *", LiveSup.Workers.TodoDatasourceSupervisorWorker}
+     ]}
+  ],
+  queues: [
+    default: 10,
+    todo_datasources: 10
+  ]
 
 # Import environment specific config. This must remain at the bottom
 # of this file so it overrides the configuration defined above.

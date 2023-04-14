@@ -1,0 +1,16 @@
+<div>
+  <.xform target={@myself} for={:todo} as={:todo}>
+    <.text name="title" value={@todo.title} required={true} label="Title" />
+    <.textarea
+      name="description"
+      value={@project.description}
+      required={false}
+      label="Description"
+    />
+
+    <.alert :if={@error} description={@error} color={:error} />
+    <:actions>
+      <.default_modal_actions action={@action} />
+    </:actions>
+  </.xform>
+</div>

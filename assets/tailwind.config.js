@@ -1,96 +1,134 @@
-const defaultTheme = require('tailwindcss/defaultTheme')
-const colors = require('tailwindcss/colors')
+const colors = require("tailwindcss/colors");
+const defaultTheme = require("tailwindcss/defaultTheme");
+let plugin = require("tailwindcss/plugin");
+const navyColor = {
+  50: "#E7E9EF",
+  100: "#C2C9D6",
+  200: "#A3ADC2",
+  300: "#697A9B",
+  400: "#5C6B8A",
+  450: "#465675",
+  500: "#384766",
+  600: "#313E59",
+  700: "#26334D",
+  750: "#222E45",
+  800: "#202B40",
+  900: "#192132",
+};
+
+const customColors = {
+  navy: navyColor,
+  "slate-150": "#E9EEF5",
+  primary: colors.indigo["600"],
+  "primary-focus": colors.indigo["700"],
+  "secondary-light": "#ff57d8",
+  secondary: "#F000B9",
+  "secondary-focus": "#BD0090",
+  "accent-light": colors.indigo["400"],
+  accent: "#5f5af6",
+  "accent-focus": "#4d47f5",
+  info: colors.sky["500"],
+  "info-focus": colors.sky["600"],
+  success: colors.emerald["500"],
+  "success-focus": colors.emerald["600"],
+  warning: "#ff9800",
+  "warning-focus": "#e68200",
+  error: "#ff5724",
+  "error-focus": "#f03000",
+  yellow: colors.yellow,
+  orange: colors.orange,
+};
 
 module.exports = {
-  darkMode: 'class', // or 'media' or false
+  content: [
+    "../**/*.*exs",
+    "./js/**/*.js",
+    "../lib/*_web.ex",
+    "../lib/*_web/**/*.*ex",
+  ],
+  darkMode: "class",
   theme: {
     extend: {
       fontFamily: {
-        sans: ['cairo', ...defaultTheme.fontFamily.sans],
+        sans: ["Poppins", ...defaultTheme.fontFamily.sans],
+        inter: ["Inter", ...defaultTheme.fontFamily.sans],
       },
-      colors: {
-        light: 'var(--light)',
-        dark: 'var(--dark)',
-        darker: 'var(--darker)',
-        primary: {
-          DEFAULT: 'var(--color-primary)',
-          50: 'var(--color-primary-50)',
-          100: 'var(--color-primary-100)',
-          light: 'var(--color-primary-light)',
-          lighter: 'var(--color-primary-lighter)',
-          dark: 'var(--color-primary-dark)',
-          darker: 'var(--color-primary-darker)',
+      fontSize: {
+        tiny: ["0.625rem", "0.8125rem"],
+        "tiny+": ["0.6875rem", "0.875rem"],
+        "xs+": ["0.8125rem", "1.125rem"],
+        "sm+": ["0.9375rem", "1.375rem"],
+      },
+      colors: { ...customColors },
+      opacity: {
+        15: ".15",
+      },
+      spacing: {
+        4.5: "1.125rem",
+        5.5: "1.375rem",
+        18: "4.5rem",
+      },
+      boxShadow: {
+        soft: "0 3px 10px 0 rgb(48 46 56 / 6%)",
+        "soft-dark": "0 3px 10px 0 rgb(25 33 50 / 30%)",
+      },
+      zIndex: {
+        1: "1",
+        2: "2",
+        3: "3",
+        4: "4",
+        5: "5",
+      },
+      keyframes: {
+        "fade-out": {
+          "0%": {
+            opacity: 1,
+            visibility: "visible",
+          },
+          "100%": {
+            opacity: 0,
+            visibility: "hidden",
+          },
         },
-        secondary: {
-          DEFAULT: colors.fuchsia[600],
-          50: colors.fuchsia[50],
-          100: colors.fuchsia[100],
-          light: colors.fuchsia[500],
-          lighter: colors.fuchsia[400],
-          dark: colors.fuchsia[700],
-          darker: colors.fuchsia[800],
-        },
-        success: {
-          DEFAULT: colors.green[600],
-          50: colors.green[50],
-          100: colors.green[100],
-          light: colors.green[500],
-          lighter: colors.green[400],
-          dark: colors.green[700],
-          darker: colors.green[800],
-        },
-		alert: {
-			DEFAULT: colors.orange[600], 
-			50: colors.orange[50],
-			100: colors.orange[100],
-			light: colors.orange[500],
-			lighter: colors.orange[400],
-			dark: colors.orange[700],
-			darker: colors.orange[800],
-		},
-        warning: {
-          DEFAULT: colors.yellow[600],
-          50: colors.yellow[50],
-          100: colors.yellow[100],
-          light: colors.yellow[500],
-          lighter: colors.yellow[400],
-          dark: colors.yellow[700],
-          darker: colors.yellow[800],
-        },
-        danger: {
-          DEFAULT: colors.red[600],
-          50: colors.red[50],
-          100: colors.red[100],
-          light: colors.red[500],
-          lighter: colors.red[400],
-          dark: colors.red[700],
-          darker: colors.red[800],
-        },
-        info: {
-          DEFAULT: colors.cyan[600],
-          50: colors.cyan[50],
-          100: colors.cyan[100],
-          light: colors.cyan[500],
-          lighter: colors.cyan[400],
-          dark: colors.cyan[700],
-          darker: colors.cyan[800],
-        },
-		incident: {
-			DEFAULT: colors.yellow[400],
-			investigating: colors.yellow[400],
-			monitoring: colors.green[400]
-		}
       },
     },
   },
-  content: [
-    "../lib/live_sup_web/**/*.eex",
-    "../lib/live_sup_web/**/*.heex",
-    "../lib/live_sup_web/**/*.ex"
-  ],
+  corePlugins: {
+    textOpacity: false,
+    backgroundOpacity: false,
+    borderOpacity: false,
+    divideOpacity: false,
+    placeholderOpacity: false,
+    ringOpacity: false,
+  },
   plugins: [
-    require('@tailwindcss/typography'),
-    require('@tailwindcss/forms'),
-    require('@themesberg/flowbite/plugin')
-  ]
-}
+    plugin(({ addVariant }) =>
+      addVariant("phx-no-feedback", ["&.phx-no-feedback", ".phx-no-feedback &"])
+    ),
+    plugin(({ addVariant }) =>
+      addVariant("phx-click-loading", [
+        "&.phx-click-loading",
+        ".phx-click-loading &",
+      ])
+    ),
+    plugin(({ addVariant }) =>
+      addVariant("phx-submit-loading", [
+        "&.phx-submit-loading",
+        ".phx-submit-loading &",
+      ])
+    ),
+    plugin(({ addVariant }) =>
+      addVariant("phx-change-loading", [
+        "&.phx-change-loading",
+        ".phx-change-loading &",
+      ])
+    ),
+    require("@tailwindcss/line-clamp"),
+    function ({ addVariant }) {
+      addVariant(
+        "supports-backdrop",
+        "@supports ((-webkit-backdrop-filter: initial) or (backdrop-filter: initial))"
+      );
+    },
+  ],
+};

@@ -32,6 +32,12 @@ defmodule LiveSup.Queries.ProjectQuery do
     |> Repo.get(id)
   end
 
+  def get_with_users(id) do
+    base()
+    |> preload(groups: :users)
+    |> Repo.get(id)
+  end
+
   def get_with_todos!(id) do
     get_with_todos_query()
     |> Repo.get!(id)
@@ -70,7 +76,8 @@ defmodule LiveSup.Queries.ProjectQuery do
       name: "My Stuff",
       slug: @internal_default_project_slug,
       internal: true,
-      default: true
+      default: true,
+      color: Palette.Utils.ColorHelper.hex()
     }
 
     %Project{}
@@ -105,6 +112,7 @@ defmodule LiveSup.Queries.ProjectQuery do
     |> with_dashboards()
     |> union(^internal_project_query)
     |> order_by(fragment("name"))
+    |> preload(groups: :users)
     |> Repo.all()
   end
 
@@ -128,14 +136,7 @@ defmodule LiveSup.Queries.ProjectQuery do
 
   def with_groups(query \\ base(), user_id) do
     query
-    |> join(:inner, [project], pg in ProjectGroup,
-      as: :project_group,
-      on: pg.project_id == project.id
-    )
-    |> join(:inner, [project, project_group: pg], ug in UserGroup,
-      as: :user_group,
-      on: ug.group_id == pg.group_id
-    )
+    |> with_groups_query()
     |> where([project, user_group: ug], ug.user_id == ^user_id)
   end
 
@@ -149,5 +150,33 @@ defmodule LiveSup.Queries.ProjectQuery do
     |> preload(:todos)
   end
 
-  def base, do: from(Project, as: :project)
+  def with_groups_query(query \\ base()) do
+    query
+    |> join(:left, [project], pg in ProjectGroup,
+      as: :project_group,
+      on: pg.project_id == project.id
+    )
+    |> join(:left, [project, project_group: pg], ug in UserGroup,
+      as: :user_group,
+      on: ug.group_id == pg.group_id
+    )
+  end
+
+  def base do
+    from(project in Project,
+      as: :project,
+      select_merge: %{
+        todos_count:
+          fragment(
+            "SELECT count(*) FROM todos WHERE project_id = ?",
+            project.id
+          ),
+        dashboards_count:
+          fragment(
+            "SELECT count(*) FROM dashboards WHERE project_id = ?",
+            project.id
+          )
+      }
+    )
+  end
 end

@@ -10,9 +10,9 @@ defmodule LiveSupWeb.WelcomeLive do
     current_user = get_current_user(session, socket)
 
     {:ok,
-     assign(socket,
-       current_user: current_user
-     )}
+     socket
+     |> assign(:current_user, current_user)
+     |> assign(:section, :home)}
   end
 
   @impl true
@@ -88,7 +88,7 @@ defmodule LiveSupWeb.WelcomeLive do
     {:noreply,
      socket
      |> put_flash(:info, "Location updated successfully")
-     |> push_redirect(to: Routes.welcome_path(socket, :thank_you))}
+     |> push_redirect(to: ~p"/welcome/thank-you")}
   end
 
   defp associate_teams(socket, %{"id" => user_id, "teams" => teams}) do

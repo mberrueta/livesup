@@ -4,17 +4,19 @@ defmodule LiveSupWeb.Live.Auth.ProjectAuth do
   import Phoenix.Controller
   alias LiveSup.Core.{Projects, Dashboards}
   alias LiveSup.Policies.{ProjectPolicy, DashboardPolicy}
-  alias LiveSupWeb.Router.Helpers, as: Routes
 
-  def ensure_access_to_project(%{params: %{"project_id" => project_id}} = conn, _options \\ []) do
+  def ensure_access_to_project(conn, options \\ [])
+
+  def ensure_access_to_project(%{params: %{"project_id" => project_id}} = conn, _options) do
     current_user = conn |> get_current_user()
 
     project = Projects.get!(project_id)
 
-    with :ok <- Bodyguard.permit(ProjectPolicy, :read, current_user, project) do
-      conn
-      |> assign(:project, project)
-    else
+    case Bodyguard.permit(ProjectPolicy, :read, current_user, project) do
+      :ok ->
+        conn
+        |> assign(:project, project)
+
       _ ->
         conn
         |> put_flash(:error, "Dashboard not found")

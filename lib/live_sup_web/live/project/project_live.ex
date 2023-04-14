@@ -2,47 +2,49 @@ defmodule LiveSupWeb.Project.ProjectLive do
   use LiveSupWeb, :live_view
 
   alias LiveSup.Core.Projects
-  alias LiveSup.Schemas.Project
+  alias LiveSup.Schemas.{Project, User}
+  alias Palette.Components.Breadcrumb.Step
+  alias LiveSupWeb.ProjectLive.LiveComponents.ProjectFormComponent
+  alias LiveSupWeb.Project.Components.ProjectStatComponent
+
+  on_mount(LiveSupWeb.UserLiveAuth)
 
   @impl true
-  def mount(_params, session, socket) do
-    current_user = get_current_user(session, socket)
-
+  def mount(_params, _session, socket) do
     {:ok,
      socket
-     |> assign_title()
-     |> assign_current_user(current_user)
-     |> assign_page_title("Projects")
-     |> assign_projects(current_user)
-     |> assign(:project, nil)
-     |> assign_section()}
+     |> assign_defaults()
+     |> assign_breadcrumb_steps()
+     |> assign_projects()
+     |> assign(:project, nil)}
   end
 
-  defp assign_page_title(socket, page_title) do
+  defp assign_breadcrumb_steps(socket) do
+    steps = [
+      %Step{label: "Home"}
+    ]
+
     socket
-    |> assign(page_title: page_title)
+    |> assign(:steps, steps)
   end
 
-  defp assign_current_user(socket, current_user) do
-    socket
-    |> assign(current_user: current_user)
-  end
-
-  defp assign_title(socket) do
+  defp assign_defaults(socket) do
     socket
     |> assign(title: "Projects")
+    |> assign_page_title("Projects")
+    |> assign(section: :home)
   end
 
-  defp assign_projects(socket, user) do
-    projects = user |> Projects.by_user()
-
+  defp assign_page_title(socket, title) do
     socket
-    |> assign(projects: projects)
+    |> assign(:page_title, title)
   end
 
-  defp assign_section(socket) do
+  defp assign_projects(%{assigns: %{current_user: current_user}} = socket) do
+    projects = current_user |> Projects.by_user()
+
     socket
-    |> assign(section: :project_listing)
+    |> stream(:projects, projects)
   end
 
   @impl true
@@ -61,4 +63,14 @@ defmodule LiveSupWeb.Project.ProjectLive do
     |> assign_page_title("Projects")
     |> assign(:project, nil)
   end
+
+  defp users_from_groups(groups) do
+    groups
+    |> Enum.map(fn group -> group.users end)
+    |> List.flatten()
+    |> Enum.uniq()
+  end
+
+  defp project_color(%Project{color: nil}), do: ""
+  defp project_color(%Project{color: color}), do: "background-color:##{color}"
 end

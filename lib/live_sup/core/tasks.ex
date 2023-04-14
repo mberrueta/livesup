@@ -3,8 +3,8 @@ defmodule LiveSup.Core.Tasks do
   The Todos context.
   """
 
-  alias LiveSup.Schemas.{Todo, TodoTask}
-  alias LiveSup.Queries.{TaskQuery, TaskQuery}
+  alias LiveSup.Schemas.{Todo, TodoTask, User}
+  alias LiveSup.Queries.{TaskQuery, CommentQuery}
   alias LiveSup.Helpers.StringHelper
 
   @doc """
@@ -16,7 +16,10 @@ defmodule LiveSup.Core.Tasks do
       [%Todo{}, ...]
 
   """
-  defdelegate by_todo(todo_id), to: TaskQuery
+  defdelegate by_todo(todo_id, filters \\ []), to: TaskQuery
+  defdelegate get!(id), to: TaskQuery
+  defdelegate complete!(id), to: TaskQuery
+  defdelegate incomplete!(id), to: TaskQuery
 
   def get(id) do
     id
@@ -32,8 +35,6 @@ defmodule LiveSup.Core.Tasks do
 
   defp found(nil), do: {:error, :not_found}
   defp found(resource), do: {:ok, resource}
-
-  defdelegate get!(id), to: TaskQuery
 
   @doc """
   Creates a todo.
@@ -57,6 +58,40 @@ defmodule LiveSup.Core.Tasks do
     |> StringHelper.keys_to_strings()
     |> Enum.into(%{"todo_id" => todo_id})
     |> TaskQuery.create()
+  end
+
+  @doc """
+  Add comment to a task
+  """
+  @spec add_comment(
+          LiveSup.Schemas.TodoTask.t(),
+          LiveSup.Schemas.User.t(),
+          String.t()
+        ) :: {:ok, LiveSup.Schemas.Comment.t()}
+  def add_comment(%TodoTask{id: task_id}, %User{id: user_id}, comment) do
+    %{
+      created_by_id: user_id,
+      body: comment,
+      task_id: task_id
+    }
+    |> CommentQuery.create()
+  end
+
+  @doc """
+  Get a task with comments
+  """
+  @spec get_with_comments!(TodoTask.t()) :: TodoTask.t()
+  def get_with_comments!(%TodoTask{id: task_id}) do
+    # TODO: Please refactor
+    base_query = TaskQuery.base(preload: [:todo, :assigned_to, :created_by, :comments])
+
+    task_id
+    |> TaskQuery.get!(base: base_query)
+  end
+
+  def get_comments(%TodoTask{id: task_id}) do
+    task_id
+    |> CommentQuery.by_task()
   end
 
   @doc """

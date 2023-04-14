@@ -1,0 +1,23 @@
+<.breadcrumb title="Manage ToDo" steps={@breadcrumb_steps} />
+
+<TodoHeaderComponent.render todo={@todo} />
+
+<div class="card px-4 pt-2 pb-4">
+  <TodoAddTaskComponent.render todo={@todo} />
+  <div class="max-h-screen overflow-auto">
+    <TaskRowComponent.render :for={task <- @tasks} task={task} />
+  </div>
+</div>
+
+<div class="card px-4 pt-2 pb-4 mt-4">
+  Completed
+  <div class="max-h-screen overflow-auto">
+    <TaskRowComponent.render :for={task <- @completed_tasks} task={task} />
+  </div>
+</div>
+
+<TodoDrawerComponent.render
+  task={@selected_task}
+  editing_task={@editing_task}
+  drawer_class={@drawer_class}
+/>

@@ -1,11 +1,19 @@
 defmodule LiveSup.Test.Setups do
+  @moduledoc """
+    Module used for tests purposed. It comntains many different type of initializations
+
+    ## Examples
+
+        setup [:setup_user, :setup_project]
+  """
   alias LiveSup.Test.{
     TodosFixtures,
     DatasourcesFixtures,
     ProjectsFixtures,
     DashboardsFixtures,
     GroupsFixtures,
-    TasksFixtures
+    TasksFixtures,
+    CommentsFixtures
   }
 
   alias LiveSup.Core.{Groups, Dashboards}
@@ -30,6 +38,20 @@ defmodule LiveSup.Test.Setups do
     |> add_to_context(%{datasource: datasource})
   end
 
+  def setup_github_datasource(context) do
+    datasource = DatasourcesFixtures.add_github_datasource()
+
+    datasource_instance =
+      datasource
+      |> LiveSup.Test.DatasourcesFixtures.datasource_instance_fixture()
+
+    context
+    |> add_to_context(%{
+      github_datasource: datasource,
+      github_datasource_instance: datasource_instance
+    })
+  end
+
   def setup_project(context) do
     project = ProjectsFixtures.project_fixture()
 
@@ -38,10 +60,28 @@ defmodule LiveSup.Test.Setups do
   end
 
   def setup_todo(context) do
-    todo = TodosFixtures.todo_fixture(context[:project], %{author_id: context[:user].id})
+    todo =
+      TodosFixtures.todo_fixture(context[:project], %{
+        author_id: context[:user].id,
+        created_by_id: context[:user].id
+      })
 
     context
     |> add_to_context(%{todo: todo})
+  end
+
+  def setup_todo_datasource(%{todo: todo, datasource: datasource} = context) do
+    todo_datasource = TodosFixtures.todo_datasource(todo, datasource)
+
+    context
+    |> add_to_context(%{todo_datasource: todo_datasource})
+  end
+
+  def setup_github_todo_datasource(%{todo: todo, github_datasource: datasource} = context) do
+    todo_datasource = TodosFixtures.todo_datasource(todo, datasource)
+
+    context
+    |> add_to_context(%{todo_github_datasource: todo_datasource})
   end
 
   def setup_task(context) do
@@ -54,6 +94,31 @@ defmodule LiveSup.Test.Setups do
 
     context
     |> add_to_context(%{task: task})
+  end
+
+  def setup_comments(context) do
+    comment1 =
+      context
+      |> Map.get(:task)
+      |> CommentsFixtures.comment_fixture(context[:user])
+
+    comment2 =
+      context
+      |> Map.get(:task)
+      |> CommentsFixtures.comment_fixture(context[:user])
+
+    context
+    |> add_to_context(%{comments: [comment1, comment2]})
+  end
+
+  def setup_comment(context) do
+    comment =
+      context
+      |> Map.get(:task)
+      |> CommentsFixtures.comment_fixture(context[:user])
+
+    context
+    |> add_to_context(%{comment: comment})
   end
 
   defp manage_todo(%{todo: _todo} = context), do: context
@@ -107,6 +172,11 @@ defmodule LiveSup.Test.Setups do
     |> add_to_context(%{user: LiveSup.Test.AccountsFixtures.user_fixture()})
   end
 
+  def setup_default_bot(context) do
+    context
+    |> add_to_context(%{bot: LiveSup.Test.AccountsFixtures.default_bot_fixture()})
+  end
+
   def setup_user_with_groups(%{all_users_group: _, admin_group: _} = context) do
     context =
       context
@@ -141,7 +211,7 @@ defmodule LiveSup.Test.Setups do
 
     Groups.add_project(context[:project], context[:admin_group])
     Groups.add_project(context[:project], context[:all_users_group])
-    # Groups.add_user(context[:user], context[:all_users_group])
+    Groups.add_user(context[:user], context[:all_users_group])
 
     context
   end

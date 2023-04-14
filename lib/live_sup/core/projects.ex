@@ -5,7 +5,8 @@ defmodule LiveSup.Core.Projects do
 
   alias LiveSup.Schemas.Project
   alias LiveSup.Queries.{ProjectQuery, GroupQuery, ProjectGroupQuery}
-  alias LiveSup.Core.Dashboards
+  alias LiveSup.Core.{Todos, Dashboards}
+  alias Palette.Utils.{ColorHelper, StringHelper}
 
   @doc """
   Returns the list of projects.
@@ -68,9 +69,18 @@ defmodule LiveSup.Core.Projects do
   defdelegate create!(attrs), to: ProjectQuery
   defdelegate create_internal_default_project(), to: ProjectQuery
 
+  def create_todo(%Project{} = project, attrs \\ %{}) do
+    attrs
+    |> StringHelper.keys_to_strings()
+    |> Map.merge(%{"project_id" => project.id})
+    |> Todos.create()
+  end
+
   def create_public_project(attrs \\ %{}) do
     project =
       attrs
+      |> StringHelper.keys_to_strings()
+      |> Map.merge(%{"color" => ColorHelper.hex()})
       |> ProjectQuery.create!()
 
     group = GroupQuery.get_all_users_group()
